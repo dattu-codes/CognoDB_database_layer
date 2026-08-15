@@ -102,7 +102,7 @@ export const Header: React.FC<HeaderProps> = ({ healthStatus, healthLoading, onR
             </div>
 
             <a
-              href="https://github.com"
+              href="https://github.com/dattu-codes/CognoDB_database_layer"
               target="_blank"
               rel="noreferrer"
               className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-800 text-xs font-medium text-slate-300 transition-all"
