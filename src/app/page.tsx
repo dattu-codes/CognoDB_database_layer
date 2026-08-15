@@ -188,7 +188,7 @@ export default function Dashboard() {
       <NodeInspector node={inspectNode} onClose={() => setInspectNode(null)} />
 
       <footer className="border-t border-slate-800/80 py-4 px-4 text-center text-xs text-slate-500">
-        NexusGraph — Powered by CognoDB Cloud & openCypher over Bolt. Wexa AI Engineering Assessment.
+        NexusGraph — Software Supply Chain & Vulnerability Intelligence Platform. Powered by CognoDB Cloud & openCypher over Bolt.
       </footer>
     </div>
   );

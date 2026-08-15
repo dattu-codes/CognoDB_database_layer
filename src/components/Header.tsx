@@ -55,8 +55,8 @@ export const Header: React.FC<HeaderProps> = ({ healthStatus, healthLoading, onR
           <div>
             <div className="flex items-center gap-2">
               <h1 className="text-xl font-bold text-white tracking-tight">NexusGraph</h1>
-              <span className="text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded bg-sky-500/10 text-sky-400 border border-sky-500/20">
-                Wexa AI Assessment
+              <span className="text-[10px] font-semibold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-sky-500/10 text-sky-400 border border-sky-500/20">
+                Enterprise v1.0
               </span>
             </div>
             <p className="text-xs text-slate-400">Software Supply Chain & Vulnerability Intelligence</p>
