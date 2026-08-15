@@ -141,7 +141,7 @@ export const NodeInspector: React.FC<NodeInspectorProps> = ({ node, onClose }) =
                 rel="noreferrer"
                 className="text-[11px] text-amber-400 hover:underline flex items-center gap-1 font-mono truncate"
               >
-                {props.url || 'https://github.com/wexa-ai/monorepo'}
+                {props.url || 'https://github.com/demo-org/monorepo'}
                 <ExternalLink className="w-3 h-3" />
               </a>
             </div>

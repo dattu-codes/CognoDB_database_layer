@@ -13,8 +13,11 @@ import {
   RiskDependencyItem,
   SystemOverview,
   GraphData,
+  GraphNode,
+  GraphRelationship,
   Vulnerability,
-  Severity
+  Severity,
+  BlastRadiusItem
 } from './types';
 
 // Centralized Parameterized Cypher Queries for NexusGraph
@@ -41,6 +44,58 @@ export async function fetchVulnerabilityList(): Promise<{ vulnerabilities: Vulne
   }
 
   return { vulnerabilities: MOCK_VULNERABILITIES, isConnected: false };
+}
+
+export async function fetchBlastRadiusGraph(cveId: string): Promise<GraphData> {
+  const query = `
+    MATCH path = (s:Service)-[:DEPENDS_ON*1..5]->(p:Package)-[:HAS_VULNERABILITY]->(v:Vulnerability {cveId: $cveId})
+    UNWIND nodes(path) AS n
+    OPTIONAL MATCH (n)-[r]->(m) WHERE m IN nodes(path)
+    RETURN n, r, m
+  `;
+
+  const { records, isConnected } = await executeCypher(query, { cveId });
+
+  if (isConnected && records.length > 0) {
+    const nodeMap = new Map<string, any>();
+    const relMap = new Map<string, any>();
+
+    records.forEach((rec: any) => {
+      if (rec.n && rec.n.id) {
+        nodeMap.set(rec.n.id, {
+          id: rec.n.id,
+          label: rec.n.label || 'Node',
+          name: rec.n.properties?.name || rec.n.properties?.cveId || rec.n.id,
+          properties: rec.n.properties || {}
+        });
+      }
+      if (rec.m && rec.m.id) {
+        nodeMap.set(rec.m.id, {
+          id: rec.m.id,
+          label: rec.m.label || 'Node',
+          name: rec.m.properties?.name || rec.m.properties?.cveId || rec.m.id,
+          properties: rec.m.properties || {}
+        });
+      }
+      if (rec.r && rec.n && rec.m) {
+        const relKey = `${rec.n.id}-${rec.r.type}-${rec.m.id}`;
+        relMap.set(relKey, {
+          id: relKey,
+          type: rec.r.type,
+          source: rec.n.id,
+          target: rec.m.id,
+          properties: rec.r.properties || {}
+        });
+      }
+    });
+
+    return {
+      nodes: Array.from(nodeMap.values()),
+      relationships: Array.from(relMap.values())
+    };
+  }
+
+  return getMockBlastRadius(cveId).graph;
 }
 
 export async function fetchBlastRadius(cveId: string): Promise<{ result: BlastRadiusResult; isConnected: boolean }> {
@@ -72,27 +127,32 @@ export async function fetchBlastRadius(cveId: string): Promise<{ result: BlastRa
 
   if (isConnected && records.length > 0) {
     const first = records[0];
+    const seenServiceIds = new Set<string>();
+    const affectedServices: BlastRadiusItem[] = [];
     let prodCount = 0;
     let stagingCount = 0;
 
-    const affectedServices = records.map((r: any) => {
-      const isProd = (r.envType || r.environment).includes('prod');
-      if (isProd) prodCount++;
-      else stagingCount++;
+    records.forEach((r: any) => {
+      if (!seenServiceIds.has(r.serviceId)) {
+        seenServiceIds.add(r.serviceId);
+        const isProd = (r.envType || r.environment).includes('prod');
+        if (isProd) prodCount++;
+        else stagingCount++;
 
-      return {
-        serviceId: r.serviceId,
-        serviceName: r.serviceName,
-        tier: r.tier || 'critical',
-        environment: r.environment,
-        vulnerablePackage: r.vulnerablePackage,
-        version: r.version,
-        cveId: r.cveId,
-        severity: (r.severity || 'CRITICAL') as Severity,
-        cvssScore: Number(r.cvssScore) || 9.0,
-        pathNodes: r.pathNodes || [],
-        hopDistance: Number(r.hopDistance) || 2
-      };
+        affectedServices.push({
+          serviceId: r.serviceId,
+          serviceName: r.serviceName,
+          tier: r.tier || 'critical',
+          environment: r.environment,
+          vulnerablePackage: r.vulnerablePackage,
+          version: r.version,
+          cveId: r.cveId,
+          severity: (r.severity || 'CRITICAL') as Severity,
+          cvssScore: Number(r.cvssScore) || 9.0,
+          pathNodes: r.pathNodes || [],
+          hopDistance: r.hopDistance == null ? 0 : Number(r.hopDistance)
+        });
+      }
     });
 
     const maxHopDepth = Math.max(...affectedServices.map(s => s.hopDistance), 0);
@@ -109,7 +169,7 @@ export async function fetchBlastRadius(cveId: string): Promise<{ result: BlastRa
       stagingServicesCount: stagingCount,
       maxHopDepth,
       affectedServices,
-      graph: await fetchFullGraph().then(res => res.graph)
+      graph: await fetchBlastRadiusGraph(cveId)
     };
 
     return { result, isConnected: true };
@@ -144,15 +204,38 @@ export async function fetchDependencyPath(
   if (isConnected && records.length > 0) {
     const r = records[0];
     const vulnerabilities = (r.vulns || []).filter((v: any) => v.cveId);
+    const pathNodes = r.pathNodes || [];
+
+    const graphNodes: GraphNode[] = pathNodes.map((pn: any) => ({
+      id: pn.id,
+      label: pn.label as any,
+      name: pn.name,
+      properties: { name: pn.name, version: pn.version }
+    }));
+
+    const graphRelationships: GraphRelationship[] = [];
+    for (let i = 0; i < pathNodes.length - 1; i++) {
+      graphRelationships.push({
+        id: `rel-path-${i}`,
+        type: i === pathNodes.length - 2 && vulnerabilities.length > 0 ? 'HAS_VULNERABILITY' : 'DEPENDS_ON',
+        source: pathNodes[i].id,
+        target: pathNodes[i + 1].id
+      });
+    }
+
+    const pathGraph: GraphData = {
+      nodes: graphNodes,
+      relationships: graphRelationships
+    };
 
     const result: DependencyPathResult = {
       serviceName: r.serviceName,
       packageName: r.packageName,
-      pathNodes: r.pathNodes || [],
-      hopDistance: Number(r.hopDistance) || 1,
+      pathNodes: pathNodes,
+      hopDistance: r.hopDistance == null ? 0 : Number(r.hopDistance),
       targetHasVulnerabilities: vulnerabilities.length > 0,
       vulnerabilities,
-      graph: await fetchFullGraph().then(res => res.graph)
+      graph: pathGraph
     };
 
     return { result, isConnected: true };
@@ -195,7 +278,6 @@ export async function fetchRiskDependencies(): Promise<{ riskDependencies: RiskD
       cvssScore: Number(r.cvssScore) || 8.0,
       affectedServicesCount: Number(r.affectedServicesCount) || 1,
       prodServicesCount: Number(r.prodServicesCount) || 1,
-      maxDepth: 3
     }));
 
     return { riskDependencies, isConnected: true };
@@ -213,7 +295,8 @@ export async function fetchOverview(): Promise<{ overview: SystemOverview; isCon
     OPTIONAL MATCH (r:Repository) WITH totalServices, totalPackages, totalVulnerabilities, totalMaintainers, count(r) AS totalRepositories
     OPTIONAL MATCH (e:Environment) WITH totalServices, totalPackages, totalVulnerabilities, totalMaintainers, totalRepositories, count(e) AS totalEnvironments
     OPTIONAL MATCH ()-[d:DEPENDS_ON]->() WITH totalServices, totalPackages, totalVulnerabilities, totalMaintainers, totalRepositories, totalEnvironments, count(d) AS totalDependencies
-    OPTIONAL MATCH (vc:Vulnerability) WHERE vc.severity = 'CRITICAL'
+    OPTIONAL MATCH (vc:Vulnerability) WHERE vc.severity = 'CRITICAL' WITH totalServices, totalPackages, totalVulnerabilities, totalMaintainers, totalRepositories, totalEnvironments, totalDependencies, count(vc) AS criticalVulnerabilitiesCount
+    OPTIONAL MATCH (hr:Package)-[:HAS_VULNERABILITY]->(hrv:Vulnerability) WHERE hrv.severity IN ['CRITICAL', 'HIGH']
     RETURN 
       totalServices,
       totalPackages,
@@ -222,7 +305,8 @@ export async function fetchOverview(): Promise<{ overview: SystemOverview; isCon
       totalRepositories,
       totalEnvironments,
       totalDependencies,
-      count(vc) AS criticalVulnerabilitiesCount
+      criticalVulnerabilitiesCount,
+      count(DISTINCT hr) AS highRiskPackagesCount
   `;
 
   const { records, isConnected } = await executeCypher(query);
@@ -238,7 +322,7 @@ export async function fetchOverview(): Promise<{ overview: SystemOverview; isCon
       totalEnvironments: Number(r.totalEnvironments) || 0,
       totalDependencies: Number(r.totalDependencies) || 0,
       criticalVulnerabilitiesCount: Number(r.criticalVulnerabilitiesCount) || 0,
-      highRiskPackagesCount: 4
+      highRiskPackagesCount: Number(r.highRiskPackagesCount) || 0
     };
     return { overview, isConnected: true };
   }

@@ -1,7 +1,7 @@
 export type Severity = 'CRITICAL' | 'HIGH' | 'MEDIUM' | 'LOW';
 export type ServiceTier = 'critical' | 'high' | 'medium' | 'low';
 export type EnvironmentType = 'production' | 'staging' | 'development';
-export type Ecosystem = 'npm' | 'pypi' | 'maven' | 'crates';
+export type Ecosystem = 'npm' | 'pypi' | 'maven' | 'crates' | 'system';
 
 export interface Service {
   id: string;
@@ -123,7 +123,6 @@ export interface RiskDependencyItem {
   cvssScore: number;
   affectedServicesCount: number;
   prodServicesCount: number;
-  maxDepth: number;
 }
 
 export interface SystemOverview {

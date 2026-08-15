@@ -77,11 +77,11 @@ async function seedCognoDB() {
       })
     `, {
       repos: [
-        { id: 'repo-checkout', name: 'wexa-ai/checkout-monorepo', url: 'https://github.com/wexa-ai/checkout-monorepo', defaultBranch: 'main' },
-        { id: 'repo-payment', name: 'wexa-ai/payment-gateway', url: 'https://github.com/wexa-ai/payment-gateway', defaultBranch: 'main' },
-        { id: 'repo-auth', name: 'wexa-ai/identity-provider', url: 'https://github.com/wexa-ai/identity-provider', defaultBranch: 'main' },
-        { id: 'repo-analytics', name: 'wexa-ai/analytics-pipeline', url: 'https://github.com/wexa-ai/analytics-pipeline', defaultBranch: 'main' },
-        { id: 'repo-infra', name: 'wexa-ai/core-gateway', url: 'https://github.com/wexa-ai/core-gateway', defaultBranch: 'main' }
+        { id: 'repo-checkout', name: 'demo-org/checkout-monorepo', url: 'https://github.com/demo-org/checkout-monorepo', defaultBranch: 'main' },
+        { id: 'repo-payment', name: 'demo-org/payment-gateway', url: 'https://github.com/demo-org/payment-gateway', defaultBranch: 'main' },
+        { id: 'repo-auth', name: 'demo-org/identity-provider', url: 'https://github.com/demo-org/identity-provider', defaultBranch: 'main' },
+        { id: 'repo-analytics', name: 'demo-org/analytics-pipeline', url: 'https://github.com/demo-org/analytics-pipeline', defaultBranch: 'main' },
+        { id: 'repo-infra', name: 'demo-org/core-gateway', url: 'https://github.com/demo-org/core-gateway', defaultBranch: 'main' }
       ]
     });
 
@@ -127,7 +127,7 @@ async function seedCognoDB() {
         { id: 'maint-log4j-lead', handle: 'rgoers', email: 'rgoers@apache.org', verified: true },
         { id: 'maint-express', handle: 'tjholowaychuk', email: 'tj@expressjs.org', verified: true },
         { id: 'maint-jackson', handle: 'cowtowncoder', email: 'tatu@fasterxml.com', verified: true },
-        { id: 'maint-xz', handle: 'jia-tan-suspect', email: 'jiat75@xz-utils.org', verified: false },
+        { id: 'maint-xz', handle: 'security-maintainer-demo', email: 'maintainer@example.invalid', verified: false },
         { id: 'maint-axios', handle: 'mzabriskie', email: 'matt@axios.org', verified: true },
         { id: 'maint-commons', handle: 'ggregory', email: 'ggregory@apache.org', verified: true }
       ]
@@ -151,7 +151,7 @@ async function seedCognoDB() {
         { id: 'pkg-jackson-databind', name: 'jackson-databind', version: '2.12.3', ecosystem: 'maven', license: 'Apache-2.0' },
         { id: 'pkg-commons-text', name: 'commons-text', version: '1.9', ecosystem: 'maven', license: 'Apache-2.0' },
         { id: 'pkg-spring-core', name: 'spring-core', version: '5.3.9', ecosystem: 'maven', license: 'Apache-2.0' },
-        { id: 'pkg-xz-utils', name: 'xz-utils', version: '5.6.0', ecosystem: 'npm', license: 'GPL-2.0' },
+        { id: 'pkg-xz-utils', name: 'xz-utils', version: '5.6.0', ecosystem: 'system', license: 'GPL-2.0' },
         { id: 'pkg-net-helper', name: 'net-helper-lib', version: '1.0.4', ecosystem: 'npm', license: 'MIT' },
         { id: 'pkg-express', name: 'express', version: '4.17.1', ecosystem: 'npm', license: 'MIT' },
         { id: 'pkg-jsonwebtoken', name: 'jsonwebtoken', version: '8.5.1', ecosystem: 'npm', license: 'MIT' },
