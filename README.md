@@ -2,7 +2,8 @@
 
 > **Wexa AI Take-Home Assessment (Software Engineer — Full-Stack / Web)**  
 > **Candidate**: Dattatreya Teella  
-> **Database Layer**: CognoDB Cloud (openCypher over Bolt protocol via official `neo4j-driver`)
+> **Database Layer**: CognoDB Cloud (openCypher over Bolt protocol via official `neo4j-driver`)  
+> **Hosted Live Demo**: [https://cognodb-database-layer.onrender.com/](https://cognodb-database-layer.onrender.com/)
 
 ---
 
@@ -177,8 +178,8 @@ LIMIT 10
 
 ### Step 1: Clone Repository & Install Dependencies
 ```bash
-git clone https://github.com/dattu-teella/nexusgraph.git
-cd wexa-cognodb-graph-app
+git clone https://github.com/dattu-codes/CognoDB_database_layer.git
+cd CognoDB_database_layer
 npm install
 ```
 
@@ -241,3 +242,4 @@ If environment credentials are missing or the CognoDB database is unreachable:
 | **Loading / Empty / Error States** | Handled explicitly across components | [`src/components/BlastRadiusPanel.tsx`](file:///C:/Users/datta/.gemini/antigravity-ide/scratch/wexa-cognodb-graph-app/src/components/BlastRadiusPanel.tsx) |
 | **Graceful Unreachable Handling** | Automatic switch to Demo Fallback dataset | [`src/lib/cognodb.ts`](file:///C:/Users/datta/.gemini/antigravity-ide/scratch/wexa-cognodb-graph-app/src/lib/cognodb.ts#L25-L65) |
 | **Secret Management** | Credentials read from `.env.local`, never committed | [`.env.example`](file:///C:/Users/datta/.gemini/antigravity-ide/scratch/wexa-cognodb-graph-app/.env.example) |
+| **Hosted Live Demo** | Render production deployment | [https://cognodb-database-layer.onrender.com/](https://cognodb-database-layer.onrender.com/) |
